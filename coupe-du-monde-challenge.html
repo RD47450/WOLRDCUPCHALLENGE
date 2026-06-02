@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚽ WORLD CUP CHALLENGE — Équipe Commerciale</title>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, push, update, remove }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ════════════════════════════════════════════════════════
+  //  🔧 CONFIGURATION FIREBASE — À REMPLACER PAR VOS VALEURS
+  // ════════════════════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "VOTRE_API_KEY",
+    authDomain:        "VOTRE_PROJECT.firebaseapp.com",
+    databaseURL:       "https://VOTRE_PROJECT-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:         "VOTRE_PROJECT_ID",
+    storageBucket:     "VOTRE_PROJECT.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId:             "VOTRE_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window._db = db;
+  window._dbRef = ref;
+  window._dbSet = set;
+  window._dbGet = get;
+  window._dbOnValue = onValue;
+  window._dbPush = push;
+  window._dbUpdate = update;
+  window._dbRemove = remove;
+  window._firebaseReady = true;
+  document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,300;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   ROOT VARIABLES & RESET
+═══════════════════════════════════════════════════════════ */
+:root {
+  --gold:        #FFD700;
+  --gold-dim:    #c9a400;
+  --gold-glow:   rgba(255,215,0,0.35);
+  --green:       #1a6b2e;
+  --green-field: #2d8a45;
+  --green-light: #3aa857;
+  --green-line:  rgba(255,255,255,0.12);
+  --dark:        #080e14;
+  --dark2:       #0d1520;
+  --dark3:       #111d2b;
+  --card-bg:     rgba(13,21,32,0.92);
+  --card-border: rgba(255,215,0,0.18);
+  --red:         #e53935;
+  --red-dim:     #b71c1c;
+  --blue:        #1565c0;
+  --white:       #f0f4ff;
+  --grey:        #8899aa;
+  --shadow:      0 8px 40px rgba(0,0,0,0.6);
+  --radius:      12px;
+  --radius-sm:   8px;
+  --font-title:  'Bebas Neue', sans-serif;
+  --font-ui:     'Rajdhani', sans-serif;
+  --font-body:   'Barlow Condensed', sans-serif;
+  --transition:  0.25s cubic-bezier(.4,0,.2,1);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-ui);
+  background: var(--dark);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TERRAIN DE FOOT (background)
+═══════════════════════════════════════════════════════════ */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 58px,
+      rgba(255,255,255,0.028) 58px,
+      rgba(255,255,255,0.028) 60px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 58px,
+      rgba(255,255,255,0.015) 58px,
+      rgba(255,255,255,0.015) 60px
+    ),
+    radial-gradient(ellipse 120% 70% at 50% 110%, rgba(26,107,46,0.45) 0%, transparent 70%),
+    linear-gradient(170deg, #070d18 0%, #0b1524 40%, #0a1420 100%);
+  pointer-events: none; z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% -5%, rgba(255,215,0,0.07) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════════ */
+.app-wrap { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; }
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER / BANNIÈRE
+═══════════════════════════════════════════════════════════ */
+.header {
+  text-align: center;
+  padding: 28px 20px 20px;
+  position: relative;
+}
+.header-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,215,0,0.04));
+  border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 100px;
+  padding: 6px 18px 6px 10px;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold);
+  margin-bottom: 12px;
+}
+.header-badge-dot { width: 8px; height: 8px; background: var(--gold); border-radius: 50%; animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+
+.header-title {
+  font-family: var(--font-title);
+  font-size: clamp(38px, 7vw, 88px);
+  line-height: .95;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #fff 0%, var(--gold) 50%, #fff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 30px rgba(255,215,0,0.4));
+}
+.header-sub {
+  font-family: var(--font-body);
+  font-size: 16px; letter-spacing: 4px; text-transform: uppercase;
+  color: rgba(255,255,255,0.4); margin-top: 6px;
+}
+.header-meta {
+  display: flex; justify-content: center; gap: 24px; margin-top: 18px; flex-wrap: wrap;
+}
+.header-chip {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px; padding: 6px 14px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+.header-chip .val { color: var(--gold); font-size: 15px; }
+
+/* ═══════════════════════════════════════════════════════════
+   NAV TABS
+═══════════════════════════════════════════════════════════ */
+.nav-tabs {
+  display: flex; gap: 4px; justify-content: center;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 5px; margin: 22px auto;
+  width: fit-content; flex-wrap: wrap;
+}
+.nav-tab {
+  font-family: var(--font-body); font-weight: 700; font-size: 14px; letter-spacing: 1px; text-transform: uppercase;
+  padding: 10px 22px; border-radius: 10px; border: none; cursor: pointer;
+  background: transparent; color: rgba(255,255,255,0.45);
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 7px;
+}
+.nav-tab:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+.nav-tab.active {
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--dark); box-shadow: 0 4px 20px var(--gold-glow);
+}
+.nav-tab .tab-icon { font-size: 18px; }
+
+/* ═══════════════════════════════════════════════════════════
+   SECTIONS
+═══════════════════════════════════════════════════════════ */
+.section { display: none; animation: fadeInUp .4s ease; }
+.section.active { display: block; }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-family: var(--font-title); font-size: 22px; letter-spacing: 2px;
+  color: var(--gold); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GRID LAYOUTS
+═══════════════════════════════════════════════════════════ */
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; }
+@media(max-width:900px) {
+  .grid-4 { grid-template-columns: repeat(2,1fr); }
+  .grid-3 { grid-template-columns: repeat(2,1fr); }
+}
+@media(max-width:580px) {
+  .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CLASSEMENT / LEADERBOARD
+═══════════════════════════════════════════════════════════ */
+.leaderboard { display: flex; flex-direction: column; gap: 10px; }
+.rank-row {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 12px 16px;
+  transition: var(--transition); position: relative; overflow: hidden;
+}
+.rank-row:hover { background: rgba(255,255,255,0.07); transform: translateX(3px); }
+.rank-row.rank-1 { border-color: rgba(255,215,0,0.5); background: rgba(255,215,0,0.06); }
+.rank-row.rank-2 { border-color: rgba(192,192,192,0.4); }
+.rank-row.rank-3 { border-color: rgba(205,127,50,0.4); }
+.rank-row .rank-pos {
+  font-family: var(--font-title); font-size: 28px; width: 36px; text-align: center;
+  color: var(--grey);
+}
+.rank-row.rank-1 .rank-pos { color: var(--gold); filter: drop-shadow(0 0 8px var(--gold)); }
+.rank-row.rank-2 .rank-pos { color: #C0C0C0; }
+.rank-row.rank-3 .rank-pos { color: #CD7F32; }
+.rank-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), var(--gold-dim));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.1);
+}
+.rank-info { flex: 1; }
+.rank-name { font-weight: 700; font-size: 16px; }
+.rank-details { font-size: 12px; color: var(--grey); margin-top: 2px; }
+.rank-score {
+  font-family: var(--font-title); font-size: 32px;
+  color: var(--gold); text-shadow: 0 0 15px var(--gold-glow);
+}
+.rank-bar-wrap { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.06); }
+.rank-bar { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); transition: width 1s ease; }
+.rank-trend { font-size: 16px; }
+
+/* ═══════════════════════════════════════════════════════════
+   PARIS / BETTING CARDS
+═══════════════════════════════════════════════════════════ */
+.player-selector {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px;
+}
+.player-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 20px; border-radius: 14px;
+  background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.1);
+  cursor: pointer; transition: var(--transition); min-width: 100px;
+}
+.player-btn:hover { border-color: rgba(255,215,0,0.4); background: rgba(255,215,0,0.05); }
+.player-btn.selected {
+  border-color: var(--gold); background: rgba(255,215,0,0.1);
+  box-shadow: 0 0 20px rgba(255,215,0,0.2);
+}
+.player-btn .p-avatar { font-size: 32px; }
+.player-btn .p-name { font-weight: 700; font-size: 14px; }
+.player-btn .p-today { font-size: 11px; color: var(--grey); }
+
+.bet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap: 16px; }
+.bet-card {
+  background: rgba(10,18,28,0.9);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 18px; position: relative; overflow: hidden;
+}
+.bet-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+}
+.bet-cat { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--grey); margin-bottom: 8px; }
+.bet-cat-title { font-family: var(--font-body); font-weight: 700; font-size: 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.bet-options { display: flex; gap: 8px; flex-wrap: wrap; }
+.odd-btn {
+  flex: 1; min-width: 64px;
+  padding: 10px 8px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04); cursor: pointer;
+  transition: var(--transition); text-align: center;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.odd-btn:hover { border-color: var(--gold); background: rgba(255,215,0,0.08); transform: translateY(-2px); }
+.odd-btn.selected {
+  border-color: var(--gold); background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,215,0,0.05));
+  box-shadow: 0 0 16px rgba(255,215,0,0.25);
+}
+.odd-btn.selected .odd-cote { color: var(--gold); }
+.odd-label { font-size: 13px; font-weight: 600; color: var(--white); }
+.odd-cote { font-family: var(--font-title); font-size: 20px; color: var(--green-light); }
+.odd-pts { font-size: 10px; color: var(--grey); }
+.odd-btn.best-odd { border-color: rgba(255,60,60,0.4); }
+.odd-btn.best-odd .odd-cote { color: #ff6b6b; }
+.best-badge { position: absolute; top: -1px; right: 6px; font-size: 8px; background: var(--red); color: #fff; padding: 1px 4px; border-radius: 0 0 4px 4px; letter-spacing: 1px; }
+
+/* Récapitulatif paris */
+.bet-summary {
+  background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.2);
+  border-radius: var(--radius); padding: 18px; margin-top: 20px;
+}
+.bet-summary-title { font-family: var(--font-title); font-size: 20px; color: var(--gold); margin-bottom: 12px; }
+.bet-summary-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.bet-sum-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.bet-sum-row .cat-n { color: var(--grey); }
+.bet-sum-row .cat-v { font-weight: 700; }
+.bet-total { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,215,0,0.2); padding-top: 12px; margin-top: 4px; }
+.bet-total-label { font-size: 14px; color: var(--grey); }
+.bet-total-pts { font-family: var(--font-title); font-size: 36px; color: var(--gold); }
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════════════ */
+.btn {
+  font-family: var(--font-body); font-weight: 700; font-size: 15px; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 14px 28px; border-radius: 10px;
+  border: none; cursor: pointer; transition: var(--transition);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--dark); box-shadow: 0 4px 20px var(--gold-glow);
+}
+.btn-gold:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 30px var(--gold-glow); }
+.btn-gold:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-ghost { background: rgba(255,255,255,0.06); color: var(--white); border: 1px solid rgba(255,255,255,0.15); }
+.btn-ghost:hover { background: rgba(255,255,255,0.12); }
+.btn-danger { background: var(--red-dim); color: #fff; }
+.btn-danger:hover { background: var(--red); }
+.btn-green { background: var(--green); color: #fff; }
+.btn-green:hover { background: var(--green-light); }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.btn-full { width: 100%; justify-content: center; }
+
+/* ═══════════════════════════════════════════════════════════
+   STATS INDIVIDUELLES
+═══════════════════════════════════════════════════════════ */
+.stat-chip {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 14px 16px; text-align: center;
+}
+.stat-chip .stat-val { font-family: var(--font-title); font-size: 32px; color: var(--gold); }
+.stat-chip .stat-lbl { font-size: 12px; color: var(--grey); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+/* ═══════════════════════════════════════════════════════════
+   ADMIN - RÉSULTATS
+═══════════════════════════════════════════════════════════ */
+.admin-lock {
+  text-align: center; padding: 40px 20px;
+}
+.admin-lock .lock-icon { font-size: 64px; margin-bottom: 16px; }
+.pin-input {
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 10px; padding: 14px 18px; font-size: 24px; text-align: center;
+  color: var(--white); letter-spacing: 8px; width: 180px; outline: none;
+  font-family: var(--font-title);
+}
+.pin-input:focus { border-color: var(--gold); }
+
+.result-card {
+  background: rgba(10,18,28,0.9); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 12px;
+}
+.result-player-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.result-player-name { font-family: var(--font-title); font-size: 22px; }
+.result-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
+.result-field { display: flex; flex-direction: column; gap: 4px; }
+.result-field label { font-size: 12px; color: var(--grey); text-transform: uppercase; letter-spacing: 1px; }
+.result-input {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px; padding: 10px 12px; color: var(--white);
+  font-family: var(--font-ui); font-size: 16px; font-weight: 600; outline: none;
+  width: 100%;
+}
+.result-input:focus { border-color: var(--gold); }
+.result-indicator { font-size: 11px; margin-top: 3px; }
+.ind-win { color: #4caf50; }
+.ind-lose { color: var(--red); }
+.ind-pending { color: var(--grey); }
+
+/* ═══════════════════════════════════════════════════════════
+   HISTORIQUE / TABLE
+═══════════════════════════════════════════════════════════ */
+.history-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.history-table th { padding: 10px 14px; text-align: left; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--grey); border-bottom: 1px solid rgba(255,255,255,0.1); }
+.history-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.history-table tr:hover td { background: rgba(255,255,255,0.03); }
+.badge-win { background: rgba(76,175,80,0.2); color: #4caf50; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.badge-lose { background: rgba(229,57,53,0.2); color: var(--red); border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+.badge-pending { background: rgba(255,255,255,0.1); color: var(--grey); border-radius: 4px; padding: 2px 8px; font-size: 11px; }
+
+/* ═══════════════════════════════════════════════════════════
+   PODIUM
+═══════════════════════════════════════════════════════════ */
+.podium {
+  display: flex; align-items: flex-end; justify-content: center; gap: 12px; padding: 30px 0 0;
+}
+.podium-step { text-align: center; position: relative; }
+.podium-avatar { font-size: 40px; margin-bottom: 8px; }
+.podium-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+.podium-pts { font-family: var(--font-title); font-size: 28px; color: var(--gold); }
+.podium-block {
+  border-radius: 8px 8px 0 0;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 12px; padding-top: 12px;
+  font-family: var(--font-title); font-size: 42px; color: rgba(255,255,255,0.3);
+}
+.podium-1 .podium-block { height: 120px; width: 110px; background: linear-gradient(180deg, rgba(255,215,0,0.25), rgba(255,215,0,0.06)); border: 1px solid rgba(255,215,0,0.4); }
+.podium-2 .podium-block { height: 90px; width: 100px; background: linear-gradient(180deg, rgba(192,192,192,0.2), rgba(192,192,192,0.05)); border: 1px solid rgba(192,192,192,0.3); }
+.podium-3 .podium-block { height: 65px; width: 90px; background: linear-gradient(180deg, rgba(205,127,50,0.2), rgba(205,127,50,0.05)); border: 1px solid rgba(205,127,50,0.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST / NOTIFICATIONS
+═══════════════════════════════════════════════════════════ */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  background: rgba(13,21,32,0.97); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 10px; padding: 14px 18px; min-width: 260px; max-width: 360px;
+  display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  animation: toast-in .3s ease; font-family: var(--font-ui); font-size: 14px;
+}
+.toast.win { border-color: rgba(76,175,80,0.5); }
+.toast.error { border-color: rgba(229,57,53,0.5); }
+@keyframes toast-in { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes toast-out { from{opacity:1} to{opacity:0;transform:translateX(40px)} }
+
+/* ═══════════════════════════════════════════════════════════
+   CONFETTI CANVAS
+═══════════════════════════════════════════════════════════ */
+#confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTBALL BALL ANIMATION
+═══════════════════════════════════════════════════════════ */
+.ball-deco {
+  position: fixed; font-size: 28px; opacity: .07; pointer-events: none; z-index: 0;
+  animation: ball-float 12s ease-in-out infinite;
+}
+@keyframes ball-float {
+  0%{transform:translateY(0) rotate(0deg)}
+  50%{transform:translateY(-30px) rotate(180deg)}
+  100%{transform:translateY(0) rotate(360deg)}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MISC UTILITIES
+═══════════════════════════════════════════════════════════ */
+.divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.mb-16 { margin-bottom: 16px; }
+.text-gold { color: var(--gold); }
+.text-grey { color: var(--grey); }
+.text-center { text-align: center; }
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.fw-700 { font-weight: 700; }
+.section-title {
+  font-family: var(--font-title); font-size: 26px; letter-spacing: 2px;
+  color: var(--gold); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+}
+.empty-state { text-align: center; padding: 40px; color: var(--grey); }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+.today-banner {
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(45,138,69,0.08));
+  border: 1px solid rgba(255,215,0,0.2); border-radius: var(--radius);
+  padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 22px; flex-wrap: wrap; gap: 10px;
+}
+.today-banner .t-label { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--grey); }
+.today-banner .t-val { font-family: var(--font-title); font-size: 20px; }
+.progress-bar-wrap { height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-top: 6px; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold)); border-radius: 10px; transition: width 1s ease; }
+.loader { display: inline-block; width: 20px; height: 20px; border: 2px solid rgba(255,255,255,.2); border-top-color: var(--gold); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.firebase-setup-notice {
+  background: rgba(229,57,53,0.12); border: 1px solid rgba(229,57,53,0.35);
+  border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; font-size: 14px;
+}
+.firebase-setup-notice code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+
+/* Cotes admin edit */
+.cotes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 14px; }
+.cote-edit-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 16px; }
+.cote-edit-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.cote-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cote-row label { flex: 1; font-size: 13px; color: var(--grey); }
+.cote-input {
+  width: 70px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; padding: 6px 10px; color: var(--white); font-family: var(--font-ui); font-size: 14px; font-weight: 600; outline: none; text-align: center;
+}
+.cote-input:focus { border-color: var(--gold); }
+.label-input {
+  flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px; padding: 6px 10px; color: var(--white); font-family: var(--font-ui); font-size: 13px; outline: none;
+}
+.label-input:focus { border-color: var(--gold); }
+
+/* Responsive */
+@media(max-width:640px) {
+  .header-title { font-size: 42px; }
+  .nav-tab { padding: 8px 14px; font-size: 12px; }
+  .podium { gap: 6px; }
+  .podium-1 .podium-block { height: 90px; width: 80px; }
+  .podium-2 .podium-block { height: 68px; width: 70px; }
+  .podium-3 .podium-block { height: 50px; width: 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Décorations ballon -->
+<div class="ball-deco" style="top:15%;left:5%;animation-delay:-3s">⚽</div>
+<div class="ball-deco" style="top:60%;right:4%;animation-delay:-7s;font-size:20px">⚽</div>
+<div class="ball-deco" style="top:40%;left:90%;animation-delay:-1s;font-size:16px">⚽</div>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="toast-container"></div>
+
+<div class="app-wrap">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-badge">
+      <div class="header-badge-dot"></div>
+      Challenge en cours • Assurance
+    </div>
+    <div class="header-title">WORLD CUP<br>CHALLENGE</div>
+    <div class="header-sub">🏆 Plateforme de Paris Commerciaux</div>
+    <div class="header-meta">
+      <div class="header-chip">📅 Journée <span class="val" id="hdr-day">—</span></div>
+      <div class="header-chip">⚽ <span class="val" id="hdr-date">—</span></div>
+      <div class="header-chip">🥇 Leader : <span class="val" id="hdr-leader">—</span></div>
+      <div class="header-chip">🎯 Paris aujourd'hui : <span class="val" id="hdr-bets">—</span></div>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('accueil')"><span class="tab-icon">🏠</span>Accueil</button>
+    <button class="nav-tab" onclick="showSection('paris')"><span class="tab-icon">🎯</span>Mes Paris</button>
+    <button class="nav-tab" onclick="showSection('classement')"><span class="tab-icon">🏆</span>Classement</button>
+    <button class="nav-tab" onclick="showSection('stats')"><span class="tab-icon">📊</span>Stats</button>
+    <button class="nav-tab" onclick="showSection('historique')"><span class="tab-icon">📋</span>Historique</button>
+    <button class="nav-tab" onclick="showSection('admin')"><span class="tab-icon">🔐</span>Admin</button>
+  </nav>
+
+  <!-- ████████████████████ SECTION ACCUEIL ████████████████████ -->
+  <section id="s-accueil" class="section active">
+
+    <div id="firebase-notice" class="firebase-setup-notice" style="display:none">
+      ⚠️ <strong>Firebase non configuré.</strong> Les données sont stockées localement (localStorage).
+      Pour activer le multi-postes, configurez votre projet Firebase dans le code source
+      (cherchez <code>VOTRE_API_KEY</code>).
+    </div>
+
+    <!-- Podium -->
+    <div class="card mb-16" style="overflow:hidden">
+      <div class="card-title">🏆 Podium du Challenge</div>
+      <div id="podium-container" class="podium"></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <!-- Classement live -->
+      <div class="card">
+        <div class="card-title">⚡ Classement Live</div>
+        <div id="home-leaderboard" class="leaderboard"></div>
+      </div>
+      <!-- Meilleur joueur du jour -->
+      <div class="card">
+        <div class="card-title">🌟 Focus du Jour</div>
+        <div id="home-daystar"></div>
+        <div class="divider"></div>
+        <div class="card-title" style="font-size:18px;margin-top:0">📈 Dernières perf.</div>
+        <div id="home-lastresults"></div>
+      </div>
+    </div>
+
+    <!-- Stats globales rapides -->
+    <div class="grid-4">
+      <div class="stat-chip"><div class="stat-val" id="gs-total-bets">—</div><div class="stat-lbl">Paris posés</div></div>
+      <div class="stat-chip"><div class="stat-val" id="gs-win-rate">—</div><div class="stat-lbl">Taux de réussite</div></div>
+      <div class="stat-chip"><div class="stat-val" id="gs-total-pts">—</div><div class="stat-lbl">Points distribués</div></div>
+      <div class="stat-chip"><div class="stat-val" id="gs-days">—</div><div class="stat-lbl">Journées jouées</div></div>
+    </div>
+  </section>
+
+  <!-- ████████████████████ SECTION PARIS ████████████████████ -->
+  <section id="s-paris" class="section">
+    <div class="today-banner">
+      <div><div class="t-label">Journée en cours</div><div class="t-val" id="bet-today-date">—</div></div>
+      <div><div class="t-label">Heure limite conseillée</div><div class="t-val">09h00 🕘</div></div>
+      <div id="bet-status-info"><span class="badge-pending">En attente</span></div>
+    </div>
+
+    <div class="section-title">👤 Sélectionnez votre profil</div>
+    <div class="player-selector" id="player-selector"></div>
+
+    <div id="bet-area" style="display:none">
+      <div class="section-title">🎯 Vos Paris du Jour</div>
+      <div id="already-bet-notice" style="display:none" class="firebase-setup-notice" style="margin-bottom:16px">
+        ✅ Vous avez déjà parié aujourd'hui. Vos paris sont verrouillés.
+      </div>
+      <div class="bet-grid" id="bet-cards"></div>
+      <div class="bet-summary" id="bet-summary" style="display:none">
+        <div class="bet-summary-title">📋 Récapitulatif de votre mise</div>
+        <div class="bet-summary-rows" id="bet-sum-rows"></div>
+        <div class="bet-total">
+          <div>
+            <div class="bet-total-label">Gains potentiels max</div>
+            <div style="font-size:11px;color:var(--grey)">Si tous vos paris sont gagnants</div>
+          </div>
+          <div class="bet-total-pts"><span id="bet-potential">0</span> pts</div>
+        </div>
+        <div class="mt-16">
+          <button class="btn btn-gold btn-full" id="btn-submit-bet" onclick="submitBets()">
+            🚀 Valider mes paris
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ████████████████████ SECTION CLASSEMENT ████████████████████ -->
+  <section id="s-classement" class="section">
+    <div class="card mb-16">
+      <div class="card-title">🏆 Classement Général</div>
+      <div id="full-leaderboard" class="leaderboard"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎖️ Grand Podium</div>
+      <div id="big-podium" class="podium"></div>
+    </div>
+  </section>
+
+  <!-- ████████████████████ SECTION STATS ████████████████████ -->
+  <section id="s-stats" class="section">
+    <div class="section-title">📊 Statistiques Individuelles</div>
+    <div class="player-selector mb-16" id="stats-player-selector"></div>
+    <div id="stats-content"></div>
+  </section>
+
+  <!-- ████████████████████ SECTION HISTORIQUE ████████████████████ -->
+  <section id="s-historique" class="section">
+    <div class="card">
+      <div class="card-title">📋 Historique des Journées</div>
+      <div id="history-content"></div>
+    </div>
+  </section>
+
+  <!-- ████████████████████ SECTION ADMIN ████████████████████ -->
+  <section id="s-admin" class="section">
+    <div id="admin-lock-screen" class="admin-lock">
+      <div class="lock-icon">🔐</div>
+      <div class="section-title" style="justify-content:center">Accès Administrateur</div>
+      <p style="color:var(--grey);margin-bottom:24px;font-size:14px">Saisissez le code PIN pour accéder au panneau d'administration</p>
+      <input type="password" class="pin-input" id="admin-pin" maxlength="6" placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()">
+      <div style="margin-top:16px">
+        <button class="btn btn-gold" onclick="checkPin()">🔓 Accéder</button>
+      </div>
+      <p style="color:var(--grey);font-size:12px;margin-top:12px">PIN par défaut : <strong>1234</strong> — À changer dans le code source</p>
+    </div>
+
+    <div id="admin-panel" style="display:none">
+      <div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+        <div class="section-title" style="margin:0">🛠️ Panneau Admin</div>
+        <button class="btn btn-ghost btn-sm" onclick="lockAdmin()">🔒 Verrouiller</button>
+      </div>
+
+      <!-- Sous-nav admin -->
+      <div class="nav-tabs" style="width:100%;margin-bottom:20px">
+        <button class="nav-tab active" onclick="showAdminTab('resultats')">📝 Saisir résultats</button>
+        <button class="nav-tab" onclick="showAdminTab('cotes')">⚙️ Gérer cotes</button>
+        <button class="nav-tab" onclick="showAdminTab('joueurs')">👥 Joueurs</button>
+        <button class="nav-tab" onclick="showAdminTab('reset')">🔄 Reset</button>
+      </div>
+
+      <!-- Saisie résultats -->
+      <div id="admin-resultats" class="admin-tab">
+        <div class="today-banner">
+          <div><div class="t-label">Journée à saisir</div><div class="t-val" id="admin-today-date">—</div></div>
+          <div>
+            <button class="btn btn-gold btn-sm" onclick="computeDay()">⚡ Calculer & Valider la journée</button>
+          </div>
+        </div>
+        <div id="result-cards"></div>
+      </div>
+
+      <!-- Gestion cotes -->
+      <div id="admin-cotes" class="admin-tab" style="display:none">
+        <div class="card">
+          <div class="card-title">⚙️ Configuration des Cotes</div>
+          <p style="color:var(--grey);font-size:13px;margin-bottom:20px">Modifiez les cotes pour chaque catégorie. Les changements prennent effet dès la journée suivante.</p>
+          <div id="cotes-editor" class="cotes-grid"></div>
+          <div class="mt-16">
+            <button class="btn btn-gold" onclick="saveCotes()">💾 Sauvegarder les cotes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Joueurs -->
+      <div id="admin-joueurs" class="admin-tab" style="display:none">
+        <div class="card">
+          <div class="card-title">👥 Gestion des Joueurs</div>
+          <div id="players-editor"></div>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div id="admin-reset" class="admin-tab" style="display:none">
+        <div class="card" style="border-color:rgba(229,57,53,0.3)">
+          <div class="card-title" style="color:#ff6b6b">⚠️ Zone Dangereuse</div>
+          <p style="color:var(--grey);font-size:14px;margin-bottom:20px">Ces actions sont irréversibles. Utilisez avec précaution.</p>
+          <div class="flex gap-8" style="flex-wrap:wrap">
+            <button class="btn btn-danger" onclick="resetDay()">🗑️ Effacer journée en cours</button>
+            <button class="btn btn-danger" onclick="resetAll()">💣 Remise à zéro complète</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /app-wrap -->
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+//  ██████╗  ██████╗ ███╗   ██╗███████╗██╗ ██████╗
+//  ██╔════╝ ██╔═══██╗████╗  ██║██╔════╝██║██╔════╝
+//  ██║      ██║   ██║██╔██╗ ██║█████╗  ██║██║  ███╗
+//  ██║      ██║   ██║██║╚██╗██║██╔══╝  ██║██║   ██║
+//  ╚██████╗ ╚██████╔╝██║ ╚████║██║     ██║╚██████╔╝
+//   ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝╚═╝     ╚═╝ ╚═════╝
+//  WORLD CUP CHALLENGE — Configuration centrale
+// ════════════════════════════════════════════════════════════════════════════
+
+const ADMIN_PIN = "1234"; // ← Changer ici
+
+// ─── JOUEURS ────────────────────────────────────────────────────────────────
+const DEFAULT_PLAYERS = [
+  { id: "p1", name: "Joueur 1", avatar: "🦁", flag: "🇫🇷" },
+  { id: "p2", name: "Joueur 2", avatar: "🐺", flag: "🇪🇸" },
+  { id: "p3", name: "Joueur 3", avatar: "🦅", flag: "🇩🇪" },
+  { id: "p4", name: "Joueur 4", avatar: "🐉", flag: "🇧🇷" },
+];
+
+// ─── CATÉGORIES & COTES PAR DÉFAUT ─────────────────────────────────────────
+const DEFAULT_CATEGORIES = [
+  {
+    id: "rdv",
+    name: "Rendez-vous pris",
+    icon: "📅",
+    options: [
+      { label: "1 RDV",  value: 1, cote: 1.5 },
+      { label: "2 RDV",  value: 2, cote: 2.0 },
+      { label: "3+ RDV", value: 3, cote: 5.0 },
+    ]
+  },
+  {
+    id: "auto",
+    name: "Contrats Auto",
+    icon: "🚗",
+    options: [
+      { label: "0 Auto",  value: 0, cote: 1.2 },
+      { label: "1 Auto",  value: 1, cote: 2.0 },
+      { label: "2 Auto",  value: 2, cote: 4.0 },
+      { label: "3+ Auto", value: 3, cote: 8.0 },
+    ]
+  },
+  {
+    id: "habitation",
+    name: "Contrats Habitation",
+    icon: "🏠",
+    options: [
+      { label: "0 Hab.",  value: 0, cote: 1.2 },
+      { label: "1 Hab.",  value: 1, cote: 2.0 },
+      { label: "2 Hab.",  value: 2, cote: 4.0 },
+      { label: "3+ Hab.", value: 3, cote: 8.0 },
+    ]
+  },
+  {
+    id: "sante",
+    name: "Contrats Santé",
+    icon: "🏥",
+    options: [
+      { label: "0 Santé",  value: 0, cote: 1.2 },
+      { label: "1 Santé",  value: 1, cote: 2.5 },
+      { label: "2+ Santé", value: 2, cote: 6.0 },
+    ]
+  },
+  {
+    id: "prevoyance",
+    name: "Contrats Prévoyance",
+    icon: "🛡️",
+    options: [
+      { label: "0 Prév.",  value: 0, cote: 1.2 },
+      { label: "1 Prév.",  value: 1, cote: 3.0 },
+      { label: "2+ Prév.", value: 2, cote: 7.0 },
+    ]
+  },
+  {
+    id: "rdvcf",
+    name: "Rendez-vous CF",
+    icon: "🤝",
+    options: [
+      { label: "1 CF",  value: 1, cote: 2.0 },
+      { label: "2 CF",  value: 2, cote: 4.0 },
+      { label: "3+ CF", value: 3, cote: 8.0 },
+    ]
+  },
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+//  STATE — données locales (fallback + travail)
+// ════════════════════════════════════════════════════════════════════════════
+let STATE = {
+  players:    [...DEFAULT_PLAYERS],
+  categories: JSON.parse(JSON.stringify(DEFAULT_CATEGORIES)),
+  bets:       {},   // { "2024-06-03": { p1: { rdv:{ optionIdx, cote }, ... }, ... } }
+  results:    {},   // { "2024-06-03": { p1: { rdv: realValue, ... }, ... } }
+  computed:   {},   // { "2024-06-03": { p1: { points, betDetails:[{cat,won,pts}] }, total, bestPlayer } }
+  scores:     {},   // { p1: totalPoints } — calculé
+};
+
+let useFirebase = false;
+let selectedPlayer = null;
+let selectedStatPlayer = null;
+let adminUnlocked = false;
+let todayBets = {}; // sélections en cours
+let currentDay = todayStr();
+
+// ════════════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+function formatDate(d) {
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function dayNumber() {
+  const start = Object.keys(STATE.computed).sort();
+  if (!start.length) return 1;
+  const days = new Set([...start, currentDay]);
+  return [...days].sort().indexOf(currentDay) + 1;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PERSISTANCE — localStorage fallback
+// ════════════════════════════════════════════════════════════════════════════
+function saveLocal() {
+  localStorage.setItem('wcc_state', JSON.stringify(STATE));
+}
+function loadLocal() {
+  const raw = localStorage.getItem('wcc_state');
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    if (s.players)    STATE.players    = s.players;
+    if (s.categories) STATE.categories = s.categories;
+    if (s.bets)       STATE.bets       = s.bets;
+    if (s.results)    STATE.results    = s.results;
+    if (s.computed)   STATE.computed   = s.computed;
+    if (s.scores)     STATE.scores     = s.scores;
+  } catch(e) { console.warn('Load local error', e); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PERSISTANCE — Firebase
+// ════════════════════════════════════════════════════════════════════════════
+function initFirebase() {
+  if (!window._firebaseReady || !window._db) return;
+  // Vérif config
+  const db = window._db;
+  if (window._dbRef(db, '/').toString().includes('VOTRE_PROJECT')) {
+    showFirebaseNotice();
+    return;
+  }
+  useFirebase = true;
+  const rootRef = window._dbRef(db, 'wcc');
+  window._dbOnValue(rootRef, snap => {
+    const data = snap.val();
+    if (!data) { saveFirebase(); return; }
+    if (data.players)    STATE.players    = data.players;
+    if (data.categories) STATE.categories = data.categories;
+    if (data.bets)       STATE.bets       = data.bets;
+    if (data.results)    STATE.results    = data.results;
+    if (data.computed)   STATE.computed   = data.computed;
+    if (data.scores)     STATE.scores     = data.scores;
+    recomputeScores();
+    renderAll();
+  });
+}
+function saveFirebase() {
+  if (!useFirebase) { saveLocal(); return; }
+  const db = window._db;
+  window._dbSet(window._dbRef(db, 'wcc'), {
+    players:    STATE.players,
+    categories: STATE.categories,
+    bets:       STATE.bets,
+    results:    STATE.results,
+    computed:   STATE.computed,
+    scores:     STATE.scores,
+  });
+}
+function saveAll() {
+  recomputeScores();
+  if (useFirebase) saveFirebase();
+  else { saveLocal(); renderAll(); }
+}
+function showFirebaseNotice() {
+  document.getElementById('firebase-notice').style.display = 'block';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  SCORE / CALCUL
+// ════════════════════════════════════════════════════════════════════════════
+function recomputeScores() {
+  STATE.scores = {};
+  STATE.players.forEach(p => { STATE.scores[p.id] = 0; });
+  Object.entries(STATE.computed).forEach(([date, dayData]) => {
+    STATE.players.forEach(p => {
+      if (dayData[p.id]) {
+        STATE.scores[p.id] = (STATE.scores[p.id] || 0) + (dayData[p.id].points || 0);
+      }
+    });
+  });
+}
+
+function computeDay() {
+  const date = currentDay;
+  const betsToday = STATE.bets[date] || {};
+  const resultsToday = STATE.results[date] || {};
+
+  // Vérif résultats saisis
+  let hasSomeResult = false;
+  document.querySelectorAll('.result-input').forEach(inp => {
+    if (inp.value !== '') hasSomeResult = true;
+  });
+  if (!hasSomeResult) { toast('⚠️ Saisissez d\'abord les résultats', 'error'); return; }
+
+  // Lire inputs résultats
+  document.querySelectorAll('.result-input').forEach(inp => {
+    const pid = inp.dataset.player;
+    const cat = inp.dataset.cat;
+    const val = parseInt(inp.value);
+    if (isNaN(val)) return;
+    if (!STATE.results[date]) STATE.results[date] = {};
+    if (!STATE.results[date][pid]) STATE.results[date][pid] = {};
+    STATE.results[date][pid][cat] = val;
+  });
+
+  // Calcul
+  if (!STATE.computed[date]) STATE.computed[date] = {};
+
+  STATE.players.forEach(p => {
+    const pb = betsToday[p.id] || {};
+    const pr = STATE.results[date]?.[p.id] || {};
+    let total = 0;
+    const betDetails = [];
+
+    STATE.categories.forEach(cat => {
+      const bet = pb[cat.id];
+      if (!bet) return;
+      const realVal = pr[cat.id];
+      if (realVal === undefined || realVal === null) return;
+
+      const betVal = bet.value;
+      const cote   = bet.cote;
+      const opt    = cat.options[bet.optionIdx];
+      const isLast = bet.optionIdx === cat.options.length - 1;
+
+      // "3+ Auto" = pari gagné si realVal >= betVal
+      // Sinon pari gagné si realVal === betVal
+      const won = isLast ? (realVal >= betVal) : (realVal === betVal);
+      const pts = won ? cote : 0;
+      total += pts;
+      betDetails.push({ cat: cat.id, label: cat.name, icon: cat.icon, betLabel: opt?.label || String(betVal), cote, won, pts });
+    });
+
+    STATE.computed[date][p.id] = { points: Math.round(total * 10) / 10, betDetails };
+  });
+
+  // Meilleur du jour
+  let bestPid = null, bestPts = -1;
+  STATE.players.forEach(p => {
+    const pts = STATE.computed[date]?.[p.id]?.points || 0;
+    if (pts > bestPts) { bestPts = pts; bestPid = p.id; }
+  });
+  STATE.computed[date]._best = bestPid;
+  STATE.computed[date]._date = date;
+
+  saveAll();
+  toast('✅ Journée calculée ! Scores mis à jour.', 'win');
+  if (bestPts > 15) launchConfetti();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — ALL
+// ════════════════════════════════════════════════════════════════════════════
+function renderAll() {
+  currentDay = todayStr();
+  renderHeader();
+  renderHomeSection();
+  renderLeaderboards();
+  renderBetSection();
+  renderStatsSection();
+  renderHistorySection();
+  renderAdminResultCards();
+  renderCotesEditor();
+  renderPlayersEditor();
+  updateHeaderDate();
+}
+
+function updateHeaderDate() {
+  document.getElementById('hdr-day').textContent = dayNumber();
+  document.getElementById('hdr-date').textContent = formatDate(currentDay);
+  document.getElementById('bet-today-date').textContent = formatDate(currentDay);
+  document.getElementById('admin-today-date').textContent = formatDate(currentDay);
+
+  // Leader
+  const sorted = sortedPlayers();
+  document.getElementById('hdr-leader').textContent = sorted[0]?.name || '—';
+
+  // Paris aujourd'hui
+  const betsToday = STATE.bets[currentDay] || {};
+  document.getElementById('hdr-bets').textContent = Object.keys(betsToday).length + '/' + STATE.players.length;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — HEADER & HOME
+// ════════════════════════════════════════════════════════════════════════════
+function renderHeader() {}
+
+function sortedPlayers() {
+  return [...STATE.players].sort((a,b) => (STATE.scores[b.id]||0) - (STATE.scores[a.id]||0));
+}
+
+function renderHomeSection() {
+  renderPodium('podium-container');
+  renderHomeLeaderboard();
+  renderHomeDayStar();
+  renderHomeLastResults();
+  renderGlobalStats();
+}
+
+function renderPodium(containerId) {
+  const sorted = sortedPlayers();
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  // Ordre podium : 2ème, 1er, 3ème
+  const order = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
+  const classMap = [
+    {cls: 'podium-2', medal: '🥈', rank: 2},
+    {cls: 'podium-1', medal: '🥇', rank: 1},
+    {cls: 'podium-3', medal: '🥉', rank: 3},
+  ];
+
+  el.innerHTML = order.map((p, i) => {
+    const pts = STATE.scores[p.id] || 0;
+    const info = classMap[i];
+    const realRank = sorted.indexOf(p) + 1;
+    return `
+      <div class="podium-step ${info.cls}">
+        <div class="podium-avatar">${p.avatar}</div>
+        <div class="podium-name">${p.flag} ${p.name}</div>
+        <div class="podium-pts">${pts} pts</div>
+        <div class="podium-block">${info.medal}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderHomeLeaderboard() {
+  const sorted = sortedPlayers();
+  const maxPts = STATE.scores[sorted[0]?.id] || 1;
+  const el = document.getElementById('home-leaderboard');
+  if (!el) return;
+
+  if (sorted.length === 0) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">🏁</div>Aucun score disponible</div>'; return; }
+
+  el.innerHTML = sorted.map((p, i) => {
+    const pts = STATE.scores[p.id] || 0;
+    const pct = maxPts > 0 ? (pts / maxPts * 100) : 0;
+    const trends = ['', '↗️', '↗️', '→'];
+    const days = Object.keys(STATE.computed).sort().slice(-3);
+    const recentPts = days.reduce((acc,d) => acc + (STATE.computed[d]?.[p.id]?.points||0), 0);
+    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+    return `
+      <div class="rank-row ${rankClass}">
+        <div class="rank-pos">${i+1}</div>
+        <div class="rank-avatar">${p.avatar}</div>
+        <div class="rank-info">
+          <div class="rank-name">${p.flag} ${p.name}</div>
+          <div class="rank-details">${Object.keys(STATE.computed).length} journées • +${recentPts.toFixed(1)} récents</div>
+        </div>
+        <div class="rank-score">${pts}</div>
+        <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
+      </div>`;
+  }).join('');
+}
+
+function renderHomeDayStar() {
+  const el = document.getElementById('home-daystar');
+  if (!el) return;
+  const today = STATE.computed[currentDay];
+  if (!today || !today._best) {
+    el.innerHTML = '<div class="text-grey" style="font-size:14px;padding:12px 0">⏳ Résultats du jour pas encore calculés</div>';
+    return;
+  }
+  const p = STATE.players.find(x => x.id === today._best);
+  if (!p) return;
+  const pts = today[p.id]?.points || 0;
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;padding:10px 0">
+      <div style="font-size:52px">${p.avatar}</div>
+      <div>
+        <div style="font-size:12px;color:var(--grey);letter-spacing:2px;text-transform:uppercase">⭐ Meilleur du jour</div>
+        <div style="font-family:var(--font-title);font-size:28px">${p.flag} ${p.name}</div>
+        <div style="font-family:var(--font-title);font-size:40px;color:var(--gold)">${pts} pts</div>
+      </div>
+    </div>`;
+}
+
+function renderHomeLastResults() {
+  const el = document.getElementById('home-lastresults');
+  if (!el) return;
+  const days = Object.keys(STATE.computed).sort().slice(-3).reverse();
+  if (!days.length) { el.innerHTML = '<div style="font-size:13px;color:var(--grey)">Aucun résultat</div>'; return; }
+
+  el.innerHTML = days.map(d => {
+    const dc = STATE.computed[d];
+    const best = dc._best;
+    const bp = STATE.players.find(x => x.id === best);
+    const bpts = dc[best]?.points || 0;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:13px;color:var(--grey)">${formatDate(d)}</div>
+        <div style="font-size:14px">${bp?.avatar||'?'} ${bp?.name||'?'}</div>
+        <div style="font-family:var(--font-title);font-size:20px;color:var(--gold)">${bpts} pts</div>
+      </div>`;
+  }).join('');
+}
+
+function renderGlobalStats() {
+  let totalBets = 0, wonBets = 0, totalPts = 0;
+  Object.entries(STATE.computed).forEach(([d, dc]) => {
+    STATE.players.forEach(p => {
+      const pd = dc[p.id];
+      if (!pd) return;
+      pd.betDetails?.forEach(b => {
+        totalBets++;
+        if (b.won) { wonBets++; totalPts += b.pts; }
+      });
+    });
+  });
+  const winRate = totalBets > 0 ? Math.round(wonBets/totalBets*100) : 0;
+  setText('gs-total-bets', totalBets);
+  setText('gs-win-rate', winRate + '%');
+  setText('gs-total-pts', totalPts.toFixed(1));
+  setText('gs-days', Object.keys(STATE.computed).length);
+}
+
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — CLASSEMENT COMPLET
+// ════════════════════════════════════════════════════════════════════════════
+function renderLeaderboards() {
+  // Full leaderboard
+  const sorted = sortedPlayers();
+  const maxPts = STATE.scores[sorted[0]?.id] || 1;
+  const el = document.getElementById('full-leaderboard');
+  if (el) {
+    el.innerHTML = sorted.map((p, i) => {
+      const pts = STATE.scores[p.id] || 0;
+      const pct = maxPts > 0 ? (pts / maxPts * 100) : 0;
+      const days = Object.keys(STATE.computed).length;
+      let won = 0, total = 0;
+      Object.values(STATE.computed).forEach(dc => {
+        dc[p.id]?.betDetails?.forEach(b => { total++; if(b.won) won++; });
+      });
+      const rate = total > 0 ? Math.round(won/total*100) : 0;
+      const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+      return `
+        <div class="rank-row ${rankClass}">
+          <div class="rank-pos">${i+1}</div>
+          <div class="rank-avatar">${p.avatar}</div>
+          <div class="rank-info">
+            <div class="rank-name">${p.flag} ${p.name}</div>
+            <div class="rank-details">🎯 ${rate}% réussite • ${days} journées</div>
+            <div class="progress-bar-wrap" style="margin-top:6px"><div class="progress-bar" style="width:${pct}%"></div></div>
+          </div>
+          <div class="rank-score">${pts}<span style="font-size:14px;color:var(--grey)"> pts</span></div>
+          <div class="rank-bar-wrap"><div class="rank-bar" style="width:${pct}%"></div></div>
+        </div>`;
+    }).join('');
+  }
+
+  renderPodium('big-podium');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — PARIS
+// ════════════════════════════════════════════════════════════════════════════
+function renderBetSection() {
+  const sel = document.getElementById('player-selector');
+  if (!sel) return;
+  sel.innerHTML = STATE.players.map(p => {
+    const hasBet = !!STATE.bets[currentDay]?.[p.id];
+    return `
+      <button class="player-btn ${selectedPlayer===p.id?'selected':''}" onclick="selectPlayer('${p.id}')">
+        <div class="p-avatar">${p.avatar}</div>
+        <div class="p-name">${p.flag} ${p.name}</div>
+        <div class="p-today">${hasBet ? '✅ Parié' : '⏳ Pas encore'}</div>
+      </button>`;
+  }).join('');
+
+  if (selectedPlayer) renderBetCards();
+}
+
+function selectPlayer(pid) {
+  selectedPlayer = pid;
+  todayBets = {};
+  // Pré-charger paris existants
+  const existing = STATE.bets[currentDay]?.[pid];
+  if (existing) {
+    Object.entries(existing).forEach(([cat, bet]) => {
+      todayBets[cat] = { optionIdx: bet.optionIdx, value: bet.value, cote: bet.cote };
+    });
+  }
+  document.getElementById('bet-area').style.display = 'block';
+  renderBetSection();
+  renderBetCards();
+  updateBetSummary();
+}
+
+function renderBetCards() {
+  const alreadyBet = !!STATE.bets[currentDay]?.[selectedPlayer];
+  const notice = document.getElementById('already-bet-notice');
+  if (notice) notice.style.display = alreadyBet ? 'block' : 'none';
+
+  const grid = document.getElementById('bet-cards');
+  if (!grid) return;
+
+  grid.innerHTML = STATE.categories.map(cat => {
+    const maxCote = Math.max(...cat.options.map(o => o.cote));
+    const sel = todayBets[cat.id];
+    return `
+      <div class="bet-card">
+        <div class="bet-cat">${cat.icon} Catégorie</div>
+        <div class="bet-cat-title">${cat.icon} ${cat.name}</div>
+        <div class="bet-options">
+          ${cat.options.map((opt, idx) => {
+            const isBest = opt.cote === maxCote && cat.options.length > 1;
+            const isSelected = sel && sel.optionIdx === idx;
+            const disabled = alreadyBet ? 'style="pointer-events:none;opacity:.7"' : '';
+            return `
+              <button class="odd-btn ${isSelected?'selected':''} ${isBest?'best-odd':''}"
+                onclick="${alreadyBet?'':''}"
+                ${alreadyBet ? 'disabled' : `onclick="selectBet('${cat.id}',${idx})"`}
+                style="position:relative;${alreadyBet?'pointer-events:none;opacity:.75':''}">
+                ${isBest ? '<span class="best-badge">TOP</span>' : ''}
+                <div class="odd-label">${opt.label}</div>
+                <div class="odd-cote">${opt.cote}x</div>
+                <div class="odd-pts">+${opt.cote} pts</div>
+              </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  updateBetSummary();
+}
+
+function selectBet(catId, optIdx) {
+  const cat = STATE.categories.find(c => c.id === catId);
+  if (!cat) return;
+  const opt = cat.options[optIdx];
+  todayBets[catId] = { optionIdx: optIdx, value: opt.value, cote: opt.cote, label: opt.label };
+  renderBetCards();
+}
+
+function updateBetSummary() {
+  const sumEl = document.getElementById('bet-summary');
+  const rowsEl = document.getElementById('bet-sum-rows');
+  if (!sumEl || !rowsEl) return;
+
+  const keys = Object.keys(todayBets);
+  if (keys.length === 0) { sumEl.style.display = 'none'; return; }
+  sumEl.style.display = 'block';
+
+  let totalPot = 0;
+  rowsEl.innerHTML = keys.map(catId => {
+    const cat = STATE.categories.find(c => c.id === catId);
+    const bet = todayBets[catId];
+    totalPot += bet.cote;
+    return `
+      <div class="bet-sum-row">
+        <span class="cat-n">${cat?.icon} ${cat?.name}</span>
+        <span class="cat-v">${bet.label} — <span class="text-gold">${bet.cote}x</span></span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('bet-potential').textContent = totalPot.toFixed(1);
+}
+
+function submitBets() {
+  if (!selectedPlayer) { toast('Sélectionnez un joueur', 'error'); return; }
+  if (Object.keys(todayBets).length === 0) { toast('Placez au moins un pari', 'error'); return; }
+  if (STATE.bets[currentDay]?.[selectedPlayer]) { toast('Paris déjà validés pour aujourd\'hui', 'error'); return; }
+
+  if (!STATE.bets[currentDay]) STATE.bets[currentDay] = {};
+  STATE.bets[currentDay][selectedPlayer] = { ...todayBets };
+
+  saveAll();
+  const p = STATE.players.find(x => x.id === selectedPlayer);
+  toast(`✅ Paris de ${p?.name} validés ! Bonne chance ${p?.avatar}`, 'win');
+  renderBetSection();
+  renderBetCards();
+  updateHeaderDate();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — STATS
+// ════════════════════════════════════════════════════════════════════════════
+function renderStatsSection() {
+  const sel = document.getElementById('stats-player-selector');
+  if (!sel) return;
+  sel.innerHTML = STATE.players.map(p => `
+    <button class="player-btn ${selectedStatPlayer===p.id?'selected':''}" onclick="selectStatPlayer('${p.id}')">
+      <div class="p-avatar">${p.avatar}</div>
+      <div class="p-name">${p.flag} ${p.name}</div>
+      <div class="p-today">${(STATE.scores[p.id]||0)} pts</div>
+    </button>`).join('');
+
+  if (selectedStatPlayer) renderPlayerStats(selectedStatPlayer);
+}
+
+function selectStatPlayer(pid) {
+  selectedStatPlayer = pid;
+  renderStatsSection();
+}
+
+function renderPlayerStats(pid) {
+  const el = document.getElementById('stats-content');
+  if (!el) return;
+  const p = STATE.players.find(x => x.id === pid);
+  const totalPts = STATE.scores[pid] || 0;
+  const days = Object.keys(STATE.computed).filter(d => STATE.computed[d][pid]);
+
+  let wonBets = 0, totalBets = 0, bestDay = 0, bestDayDate = null;
+  const catStats = {};
+
+  days.forEach(d => {
+    const pd = STATE.computed[d][pid];
+    const pts = pd?.points || 0;
+    if (pts > bestDay) { bestDay = pts; bestDayDate = d; }
+    pd?.betDetails?.forEach(b => {
+      totalBets++;
+      if (b.won) wonBets++;
+      if (!catStats[b.cat]) catStats[b.cat] = { won: 0, total: 0, pts: 0 };
+      catStats[b.cat].total++;
+      if (b.won) { catStats[b.cat].won++; catStats[b.cat].pts += b.pts; }
+    });
+  });
+
+  const rate = totalBets > 0 ? Math.round(wonBets/totalBets*100) : 0;
+
+  el.innerHTML = `
+    <div class="card mb-16">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="font-size:56px">${p?.avatar}</div>
+        <div>
+          <div style="font-family:var(--font-title);font-size:30px">${p?.flag} ${p?.name}</div>
+          <div style="color:var(--grey);font-size:14px">${days.length} journées jouées</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-family:var(--font-title);font-size:52px;color:var(--gold)">${totalPts}</div>
+          <div style="color:var(--grey);font-size:12px">POINTS TOTAUX</div>
+        </div>
+      </div>
+      <div class="grid-4">
+        <div class="stat-chip"><div class="stat-val">${totalBets}</div><div class="stat-lbl">Paris posés</div></div>
+        <div class="stat-chip"><div class="stat-val">${wonBets}</div><div class="stat-lbl">Paris gagnés</div></div>
+        <div class="stat-chip"><div class="stat-val">${rate}%</div><div class="stat-lbl">Taux réussite</div></div>
+        <div class="stat-chip"><div class="stat-val">${bestDay}</div><div class="stat-lbl">Meilleure journée</div></div>
+      </div>
+      ${bestDayDate ? `<div class="mt-16" style="text-align:center;color:var(--grey);font-size:13px">🏆 Meilleure perf. le ${formatDate(bestDayDate)}</div>` : ''}
+    </div>
+
+    <div class="card mb-16">
+      <div class="card-title">🎯 Stats par Catégorie</div>
+      <div class="cotes-grid">
+        ${STATE.categories.map(cat => {
+          const cs = catStats[cat.id] || { won:0, total:0, pts:0 };
+          const r = cs.total > 0 ? Math.round(cs.won/cs.total*100) : 0;
+          return `
+            <div class="stat-chip" style="text-align:left;padding:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font-weight:700">${cat.icon} ${cat.name}</div>
+                <div style="font-family:var(--font-title);font-size:22px;color:var(--gold)">${cs.pts.toFixed(1)} pts</div>
+              </div>
+              <div style="font-size:12px;color:var(--grey)">${cs.won}/${cs.total} gagnés — ${r}%</div>
+              <div class="progress-bar-wrap" style="margin-top:8px"><div class="progress-bar" style="width:${r}%"></div></div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Historique Personnel</div>
+      ${days.length === 0 ? '<div class="empty-state"><div class="empty-icon">📭</div>Aucun résultat</div>' :
+        `<table class="history-table">
+          <thead><tr><th>Date</th><th>Points</th><th>Paris</th><th>Détail</th></tr></thead>
+          <tbody>
+            ${days.sort().reverse().map(d => {
+              const pd = STATE.computed[d][pid];
+              const pts = pd?.points || 0;
+              const won = pd?.betDetails?.filter(b=>b.won).length || 0;
+              const total = pd?.betDetails?.length || 0;
+              const detail = pd?.betDetails?.map(b => `${b.icon}${b.won?'✅':'❌'}`).join(' ') || '';
+              return `<tr>
+                <td>${formatDate(d)}</td>
+                <td><span style="font-family:var(--font-title);font-size:20px;color:var(--gold)">${pts}</span></td>
+                <td>${won}/${total}</td>
+                <td style="font-size:18px">${detail}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>`
+      }
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  RENDER — HISTORIQUE GLOBAL
+// ════════════════════════════════════════════════════════════════════════════
+function renderHistorySection() {
+  const el = document.getElementById('history-content');
+  if (!el) return;
+  const days = Object.keys(STATE.computed).sort().reverse();
+
+  if (!days.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>Aucun historique disponible</div>';
+    return;
+  }
+
+  el.innerHTML = days.map(d => {
+    const dc = STATE.computed[d];
+    const sorted = [...STATE.players].sort((a,b) => (dc[b.id]?.points||0) - (dc[a.id]?.points||0));
+    const best = STATE.players.find(p => p.id === dc._best);
+    return `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-family:var(--font-title);font-size:20px">${formatDate(d)}</div>
+          ${best ? `<div style="font-size:13px;color:var(--gold)">⭐ ${best.avatar} ${best.name}</div>` : ''}
+        </div>
+        <table class="history-table">
+          <thead><tr><th>#</th><th>Joueur</th><th>Points</th><th>Paris</th></tr></thead>
+          <tbody>
+            ${sorted.map((p,i) => {
+              const pd = dc[p.id];
+              if (!pd) return '';
+              const won = pd.betDetails?.filter(b=>b.won).length || 0;
+              const total = pd.betDetails?.length || 0;
+              const cats = pd.betDetails?.map(b => `${b.icon}${b.won?'✅':'❌'}`).join(' ') || '—';
+              return `<tr>
+                <td>${i+1}</td>
+                <td>${p.avatar} ${p.flag} ${p.name}</td>
+                <td><span style="font-family:var(--font-title);font-size:20px;color:var(--gold)">${pd.points}</span></td>
+                <td style="font-size:16px">${cats}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+        <div class="divider"></div>
+      </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ADMIN
+// ════════════════════════════════════════════════════════════════════════════
+function checkPin() {
+  const val = document.getElementById('admin-pin').value;
+  if (val === ADMIN_PIN) {
+    adminUnlocked = true;
+    document.getElementById('admin-lock-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    renderAdminResultCards();
+    renderCotesEditor();
+    renderPlayersEditor();
+  } else {
+    toast('❌ PIN incorrect', 'error');
+    document.getElementById('admin-pin').value = '';
+  }
+}
+function lockAdmin() {
+  adminUnlocked = false;
+  document.getElementById('admin-pin').value = '';
+  document.getElementById('admin-lock-screen').style.display = 'block';
+  document.getElementById('admin-panel').style.display = 'none';
+}
+
+function showAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(el => el.style.display = 'none');
+  document.getElementById('admin-' + tab).style.display = 'block';
+  document.querySelectorAll('#admin-panel .nav-tab').forEach((btn,i) => {
+    btn.classList.toggle('active', ['resultats','cotes','joueurs','reset'][i] === tab);
+  });
+}
+
+function renderAdminResultCards() {
+  const el = document.getElementById('result-cards');
+  if (!el) return;
+  const betsToday = STATE.bets[currentDay] || {};
+  const resultsToday = STATE.results[currentDay] || {};
+
+  if (!Object.keys(betsToday).length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div>Aucun pari posé aujourd\'hui</div>';
+    return;
+  }
+
+  el.innerHTML = STATE.players.map(p => {
+    const pb = betsToday[p.id];
+    if (!pb) return `
+      <div class="result-card" style="opacity:.5">
+        <div class="result-player-head">
+          <div style="font-size:36px">${p.avatar}</div>
+          <div class="result-player-name">${p.flag} ${p.name} — <span style="color:var(--grey);font-size:16px">Aucun pari aujourd\'hui</span></div>
+        </div>
+      </div>`;
+
+    return `
+      <div class="result-card">
+        <div class="result-player-head">
+          <div style="font-size:36px">${p.avatar}</div>
+          <div class="result-player-name">${p.flag} ${p.name}</div>
+        </div>
+        <div class="result-grid">
+          ${Object.entries(pb).map(([catId, bet]) => {
+            const cat = STATE.categories.find(c => c.id === catId);
+            const existingVal = resultsToday[p.id]?.[catId] ?? '';
+            const alreadyComputed = !!STATE.computed[currentDay]?.[p.id];
+            return `
+              <div class="result-field">
+                <label>${cat?.icon} ${cat?.name} (pari: ${bet.label || bet.value} @ ${bet.cote}x)</label>
+                <input type="number" min="0" max="99" class="result-input"
+                  data-player="${p.id}" data-cat="${catId}"
+                  value="${existingVal}"
+                  placeholder="Résultat réel"
+                  ${alreadyComputed ? 'readonly style="opacity:.7"' : ''}
+                  oninput="updateResultIndicator(this,'${catId}',${bet.value},${bet.optionIdx},${cat?.options?.length||1})">
+                <div class="result-indicator ind-pending" id="ind-${p.id}-${catId}">
+                  ${existingVal !== '' ? checkIndicator(catId, parseInt(existingVal), bet.value, bet.optionIdx, cat?.options?.length||1, bet.cote) : '⬜ Saisir...'}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function checkIndicator(catId, real, betVal, optIdx, totalOpts, cote) {
+  const isLast = optIdx === totalOpts - 1;
+  const won = isLast ? (real >= betVal) : (real === betVal);
+  return won ? `<span class="ind-win">✅ Gagné → +${cote} pts</span>` : `<span class="ind-lose">❌ Perdu → 0 pt</span>`;
+}
+
+function updateResultIndicator(inp, catId, betVal, optIdx, totalOpts) {
+  const pid = inp.dataset.player;
+  const real = parseInt(inp.value);
+  const pb = STATE.bets[currentDay]?.[pid]?.[catId];
+  const cote = pb?.cote || 0;
+  const el = document.getElementById(`ind-${pid}-${catId}`);
+  if (!el || isNaN(real)) { if(el) el.innerHTML = '⬜ Saisir...'; return; }
+  el.innerHTML = checkIndicator(catId, real, betVal, optIdx, totalOpts, cote);
+}
+
+// ─── Cotes editor ────────────────────────────────────────────────────────────
+function renderCotesEditor() {
+  const el = document.getElementById('cotes-editor');
+  if (!el) return;
+  el.innerHTML = STATE.categories.map((cat, ci) => `
+    <div class="cote-edit-card">
+      <div class="cote-edit-title">
+        <input class="label-input" value="${cat.icon}" style="width:44px;text-align:center" id="cat-icon-${ci}">
+        <input class="label-input" value="${cat.name}" id="cat-name-${ci}" style="flex:1">
+      </div>
+      ${cat.options.map((opt, oi) => `
+        <div class="cote-row">
+          <input class="label-input" value="${opt.label}" id="opt-label-${ci}-${oi}">
+          <input type="number" step="0.1" min="1" class="cote-input" value="${opt.cote}" id="opt-cote-${ci}-${oi}">
+          <span style="font-size:12px;color:var(--grey)">x</span>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function saveCotes() {
+  STATE.categories.forEach((cat, ci) => {
+    cat.icon = document.getElementById(`cat-icon-${ci}`)?.value || cat.icon;
+    cat.name = document.getElementById(`cat-name-${ci}`)?.value || cat.name;
+    cat.options.forEach((opt, oi) => {
+      opt.label = document.getElementById(`opt-label-${ci}-${oi}`)?.value || opt.label;
+      const v = parseFloat(document.getElementById(`opt-cote-${ci}-${oi}`)?.value);
+      if (!isNaN(v) && v >= 1) opt.cote = v;
+    });
+  });
+  saveAll();
+  toast('✅ Cotes sauvegardées', 'win');
+}
+
+// ─── Joueurs editor ──────────────────────────────────────────────────────────
+function renderPlayersEditor() {
+  const el = document.getElementById('players-editor');
+  if (!el) return;
+  el.innerHTML = STATE.players.map((p, i) => `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <input class="label-input" style="width:50px;text-align:center" value="${p.avatar}" id="p-avatar-${i}">
+      <input class="label-input" style="width:50px;text-align:center" value="${p.flag}" id="p-flag-${i}">
+      <input class="label-input" style="flex:1;min-width:120px" value="${p.name}" id="p-name-${i}">
+      <span style="font-size:12px;color:var(--grey)">${(STATE.scores[p.id]||0)} pts</span>
+    </div>`).join('') +
+    `<div class="mt-16"><button class="btn btn-gold btn-sm" onclick="savePlayers()">💾 Sauvegarder joueurs</button></div>`;
+}
+
+function savePlayers() {
+  STATE.players.forEach((p, i) => {
+    p.avatar = document.getElementById(`p-avatar-${i}`)?.value || p.avatar;
+    p.flag   = document.getElementById(`p-flag-${i}`)?.value   || p.flag;
+    p.name   = document.getElementById(`p-name-${i}`)?.value   || p.name;
+  });
+  saveAll();
+  toast('✅ Joueurs sauvegardés', 'win');
+  renderAll();
+}
+
+// ─── Reset ───────────────────────────────────────────────────────────────────
+function resetDay() {
+  if (!confirm('Effacer les paris et résultats de la journée en cours ?')) return;
+  delete STATE.bets[currentDay];
+  delete STATE.results[currentDay];
+  delete STATE.computed[currentDay];
+  saveAll();
+  toast('🗑️ Journée effacée', 'win');
+  renderAll();
+}
+function resetAll() {
+  if (!confirm('⚠️ REMETTRE À ZÉRO TOUT LE CHALLENGE ? Cette action est irréversible !')) return;
+  if (!confirm('Dernière confirmation : supprimer TOUTES les données ?')) return;
+  STATE.bets = {}; STATE.results = {}; STATE.computed = {}; STATE.scores = {};
+  saveAll();
+  toast('💣 Remise à zéro effectuée', 'win');
+  renderAll();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  NAV
+// ════════════════════════════════════════════════════════════════════════════
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + name).classList.add('active');
+  const tabs = ['accueil','paris','classement','stats','historique','admin'];
+  const idx = tabs.indexOf(name);
+  document.querySelectorAll('.nav-tab')[idx]?.classList.add('active');
+
+  if (name === 'stats' && !selectedStatPlayer && STATE.players.length > 0) {
+    selectStatPlayer(STATE.players[0].id);
+  }
+  if (name === 'classement') renderLeaderboards();
+  if (name === 'historique') renderHistorySection();
+}
+
+function showAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(el => el.style.display = 'none');
+  document.getElementById('admin-' + tab).style.display = 'block';
+  const tabs = ['resultats','cotes','joueurs','reset'];
+  document.querySelectorAll('#admin-panel .nav-tab').forEach((btn,i) => {
+    btn.classList.toggle('active', tabs[i] === tab);
+  });
+  if (tab === 'resultats') renderAdminResultCards();
+  if (tab === 'cotes') renderCotesEditor();
+  if (tab === 'joueurs') renderPlayersEditor();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════════════════════
+function toast(msg, type = '') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span style="font-size:20px">${type==='win'?'🎉':type==='error'?'⚠️':'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(el);
+  setTimeout(() => { el.style.animation = 'toast-out .3s ease forwards'; setTimeout(() => el.remove(), 300); }, 3500);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  CONFETTI
+// ════════════════════════════════════════════════════════════════════════════
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  const pieces = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    w: Math.random() * 12 + 4, h: Math.random() * 6 + 4,
+    r: Math.random() * Math.PI * 2,
+    vx: (Math.random() - 0.5) * 4,
+    vy: Math.random() * 3 + 2,
+    vr: (Math.random() - 0.5) * 0.2,
+    c: ['#FFD700','#FF6B6B','#4FC3F7','#81C784','#CE93D8','#FF8A65'][Math.floor(Math.random()*6)],
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+    });
+    frame++;
+    if (frame < 180) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  draw();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════════════════
+function init() {
+  loadLocal();
+  recomputeScores();
+  renderAll();
+
+  // Auto-refresh toutes les 30s (mode affichage)
+  setInterval(() => {
+    if (!adminUnlocked) renderAll();
+  }, 30000);
+}
+
+// Firebase ou fallback local
+document.addEventListener('firebase-ready', () => {
+  try { initFirebase(); } catch(e) { console.warn('Firebase init error:', e); showFirebaseNotice(); }
+});
+
+// Timeout : si Firebase ne répond pas en 4s, on part en local
+setTimeout(() => {
+  if (!useFirebase) { showFirebaseNotice(); init(); }
+}, 4000);
+
+// Si Firebase ready immédiatement
+if (window._firebaseReady) {
+  try { initFirebase(); } catch(e) { showFirebaseNotice(); init(); }
+} else {
+  // Init local en attendant Firebase
+  init();
+}
+</script>
+</body>
+</html>
